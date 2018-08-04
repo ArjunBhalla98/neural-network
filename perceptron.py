@@ -50,9 +50,17 @@ class Perceptron(object):
 
     def sign_activate(self, x):
         """
-        Will return the sign of the given parameter (int or float) 
+        Will return the sign of the given parameter (int or float). 
         """
+        assert (isinstance(x, float) or isinstance(x, int))
         if x < 0:
             return -1
         else:
             return 1
+    
+    def logistic_activate(self, x):
+        """
+        Will run the sigmoid function on the given parameter (int or float).
+        """
+        assert (isinstance(x, float) or isinstance(x, int))
+        return (1 / (1 + math.exp(-1*x)))
