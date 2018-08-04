@@ -8,19 +8,17 @@ class Perceptron(object):
 
     Parameters:
 
-
-    weights: A matrix of shape (n, 1), where n is the number of inputs (ideally dtype = float32).
+    starting_weights: A matrix of shape (n, 1), where n is the number of inputs (ideally dtype = float32).
     
     logistic: A boolean which determines if you want to use the logistic regression function as
     the activation function (if false will use sign).
-
     """
 
-    def __init__(self, weights, logistic = True):
+    def __init__(self, starting_weights, logistic = True):
         
-        assert isinstance(weights, np.matrix)
+        assert isinstance(starting_weights, np.matrix)
         assert isinstance(logistic, bool)
-        self.weights = weights
+        self.weights = starting_weights
         self.logistic = logistic
     
     def get_weights(self):
@@ -64,3 +62,17 @@ class Perceptron(object):
         """
         assert (isinstance(x, float) or isinstance(x, int))
         return (1 / (1 + math.exp(-1*x)))
+    
+    def predict(self, x):
+        """
+        With the given activation function, predict what values the perceptron will give.
+        x must be a vector (nx1 matrix) (tensorflow / numpy).
+        """
+        assert(isinstance(x, np.matrix))
+        digit = tf.matmul(self.weights, x, transpose_b = True)
+
+        if self.logistic:
+            return self.logistic_activate(digit)
+        else:
+            return self.sign_activate(digit)
+        
