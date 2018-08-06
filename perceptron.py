@@ -16,6 +16,8 @@ class Perceptron(object):
     the activation function (if false will use sign).
     """
 
+    
+
     def __init__(self, starting_weights, session, logistic = True):
         
         assert isinstance(starting_weights, tf.Variable)
@@ -53,7 +55,7 @@ class Perceptron(object):
         """
         Will return the sign of the given parameter (int or float). 
         """
-        assert (isinstance(x, float) or isinstance(x, int))
+        # assert (isinstance(x, float) or isinstance(x, int))
         if x < 0:
             return -1
         else:
@@ -62,17 +64,24 @@ class Perceptron(object):
     def _logistic_activate(self, x):
         """
         Will run the sigmoid function on the given parameter (int or float).
+
+        Returns: float
         """
         assert (isinstance(x, float) or isinstance(x, int))
-        return (1 / (1 + math.exp(-1*x)))
+        return (1.0 / (1.0 + math.exp(-1.0*x)))
     
     def predict(self, x):
         """
         With the given activation function, predict what values the perceptron will give.
-        x must be a vector (nx1 matrix) (tensorflow / numpy).
+        x must be a vector (1xn matrix) (tensorflow / numpy).
+
+        returns: float
         """
-        assert(isinstance(x, np.matrix))
-        digit = tf.matmul(self.weights, x, transpose_b = True)[0][0]
+        print(x)
+        init = tf.global_variables_initializer()
+        self.sess.run(init)
+        digit = self.sess.run(tf.matmul(x, self.sess.run(self.weights)))[0][0]
+        
 
         if self.logistic:
             return self._logistic_activate(digit)
@@ -83,7 +92,7 @@ class Perceptron(object):
         """
         Will train the perceptron according to the relevant (in-built) cost function.
 
-        x_values: (1, m) np.matrix where m is the number of features in the example.
+        x_values: (1, n) np.matrix where n is the number of features in the example.
         output_vector: (1,) np.matrix which denotes the expected output value for this example.
         learning_rate: The alpha value for this perceptron.
         """
@@ -93,8 +102,15 @@ class Perceptron(object):
         else:
             self._train_sign(x_values, output_vector, learning_rate)
     
-    def _train_logistic(x_values, output_vector, learning_rate):
-        pass
+    def _train_logistic(self, x_values, output_vector, learning_rate):
+        loss = math.sqrt(math.pow(self.predict(x_values) - output_vector[0], 2)) # Dubious about this step, check it out,
+                                                                                    # Might need to use tensors for the GDO
+        trainer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
+        init = tf.global_variables_initializer()
+        self.sess.run(init)
+        self.sess.run(trainer)
     
-    def _train_sign(x_values, output_vector, learning_rate):
-        pass
+    def _train_sign(self, x_values, output_vector, learning_rate):
+        loss = (self.predict(x_values) - output_vector[0])*learning_rate
+        update_values = np.multiply(x_values, loss) # This is what to add to the weights, is the same shape as x_values (1xn)
+        np.add(self.weights, np.transpose(update_values)) # weights + updates_transpose = 1xn + 1xn. This is the update.
